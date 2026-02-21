@@ -4,6 +4,8 @@ Este repositório contém a arquitetura de referência para um cluster gerenciad
 
 O foco deste setup é suportar ecossistemas de **Microsserviços** e integração com modelos de **IA/LLM**, conforme as melhores práticas de mercado.
 
+<div align="center"><img src="https://res.cloudinary.com/limpeja/image/upload/v1771688064/elllallalal_dkk1vr.png" alt="swap Logo" width="480"></div>
+
 ## 🏗️ Arquitetura Proposta
 - **Resource Group**: Isolamento lógico de todos os recursos.
 - **VNet & Subnets**: Segmentação de rede para isolar os nós do AKS da internet pública.
