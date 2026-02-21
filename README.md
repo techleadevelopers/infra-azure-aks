@@ -2,6 +2,8 @@
 
 Este repositório contém a definição de infraestrutura para provisionamento de uma plataforma Azure Kubernetes Service (AKS) utilizando Terraform. A solução foi projetada para ambientes corporativos que exigem segurança de rede, governança, observabilidade e escalabilidade, sendo adequada para workloads de microsserviços, APIs críticas e aplicações de alta disponibilidade.
 
+<div align="center"><img src="https://res.cloudinary.com/limpeja/image/upload/v1771688064/elllallalal_dkk1vr.png" alt="swap Logo" width="1024"></div>
+
 ## Objetivo
 Provisionar uma base padronizada e reproduzível para execução de workloads em Kubernetes com:
 - Segurança por padrão (secure-by-default)
