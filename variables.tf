@@ -16,11 +16,6 @@ variable "location" {
   default     = "East US"
 }
 
-variable "admin_ip" {
-  description = "IP authorized to access the AKS API server (CIDR, e.g., 1.2.3.4/32)"
-  type        = string
-}
-
 variable "node_count" {
   description = "Initial system node count"
   type        = number
