@@ -1,22 +1,27 @@
-# Local infrastructure - Terraform
+# Terraform working dirs/state
 .terraform/
 *.tfstate
 *.tfstate.*
-.terraform.lock.hcl
-
-# Credenciais e Logs
-*.log
-.azure/
 crash.log
-.yaml
-# Instaladores e binários (Como o seu AzureCLI.msi)
-*.msi
-*.exe
-
-# Variáveis sensíveis (Se você criar um arquivo .tfvars depois)
+terraform.tfplan
+*.plan
+override.tf
+override.tf.json
 *.tfvars
 *.tfvars.json
 
-# Sistema operacional
+# Provider locks should be versioned; do NOT ignore .terraform.lock.hcl
+
+# Local tooling / auth
+.azure/
+*.log
+
+# OS / editors
 .DS_Store
 Thumbs.db
+.vscode/
+*.code-workspace
+
+# Installers/binaries
+*.msi
+*.exe
