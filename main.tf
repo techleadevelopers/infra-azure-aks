@@ -1,18 +1,3 @@
-terraform {
-  required_version = ">= 1.0.0"
-
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {}
-}
-
 # =========================
 # Resource Group
 # =========================
@@ -134,6 +119,11 @@ resource "azurerm_application_gateway" "appgw" {
     rule_set_version = "3.2"
   }
 
+  ssl_policy {
+    policy_type = "Predefined"
+    policy_name = "AppGwSslPolicy20220101"
+  }
+
   tags = {
     Environment = var.environment
     Tier        = "Enterprise"
@@ -151,19 +141,18 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   private_cluster_enabled = true
 
-api_server_access_profile {
-  authorized_ip_ranges = [var.admin_ip]
-}
+  api_server_access_profile {
+    authorized_ip_ranges = [var.admin_ip]
+  }
 
   default_node_pool {
     name                = "system"
     vm_size             = "Standard_DC2s_v3"
-    node_count          = 2
+    node_count          = var.node_count
     vnet_subnet_id      = azurerm_subnet.aks_subnet.id
     enable_auto_scaling = true
     min_count           = 1
     max_count           = 3
- 
 
     upgrade_settings {
       max_surge = "10%"
