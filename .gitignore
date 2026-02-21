@@ -1,0 +1,22 @@
+# Local infrastructure - Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Credenciais e Logs
+*.log
+.azure/
+crash.log
+
+# Instaladores e binários (Como o seu AzureCLI.msi)
+*.msi
+*.exe
+
+# Variáveis sensíveis (Se você criar um arquivo .tfvars depois)
+*.tfvars
+*.tfvars.json
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
