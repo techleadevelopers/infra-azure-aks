@@ -1,4 +1,4 @@
-# Azure Kubernetes Service (AKS) - IaC Strategy 🚀
+# Azure Kubernetes Service (AKS) - IaC Strategy 
 
 Este repositório contém a arquitetura de referência para um cluster gerenciado na Azure (AKS), utilizando **Terraform** para garantir uma infraestrutura resiliente, escalável e segura. 
 
@@ -10,12 +10,12 @@ O foco deste setup é suportar ecossistemas de **Microsserviços** e integraçã
 - **AKS Cluster**: Configurado com Identidade Gerenciada (SystemAssigned) e RBAC.
 - **Node Pools**: Provisionamento otimizado para cargas de trabalho de alta performance.
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 - **Terraform**: Infraestrutura como Código (IaC).
 - **Azure Provider (azurerm)**: Gerenciamento nativo de recursos Microsoft.
 - **Kubernetes**: Orquestração de contêineres para Python/TypeScript.
 
-## 🚀 Como utilizar
+## Como utilizar
 1. Autentique na Azure: `az login`
 2. Inicialize o Terraform: `terraform init`
 3. Valide o plano de execução: `terraform plan`
