@@ -8,7 +8,7 @@
 *.log
 .azure/
 crash.log
-
+.yaml
 # Instaladores e binários (Como o seu AzureCLI.msi)
 *.msi
 *.exe
