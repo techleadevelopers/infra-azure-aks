@@ -1,158 +1,195 @@
-# Azure AKS Enterprise Platform – Infrastructure as Code
+# Azure AKS Enterprise Platform (Terraform)
 
-Este repositório contém a definição de infraestrutura para provisionamento de uma plataforma Azure Kubernetes Service (AKS) utilizando Terraform. A solução foi projetada para ambientes corporativos que exigem segurança de rede, governança, observabilidade e escalabilidade, sendo adequada para workloads de microsserviços, APIs críticas e aplicações de alta disponibilidade.
+Enterprise-grade Kubernetes platform on Azure designed for production workloads, built with Infrastructure as Code and aligned with modern DevOps and Platform Engineering practices.
 
-<div align="center"><img src="https://res.cloudinary.com/limpeja/image/upload/v1771688064/elllallalal_dkk1vr.png" alt="swap Logo" width="1024"></div>
+This project demonstrates the design and implementation of a secure, scalable and observable AKS environment, suitable for microservices, APIs and AI-driven applications.
 
-## Objetivo
-Provisionar uma base padronizada e reproduzível para execução de workloads em Kubernetes com:
-- Segurança por padrão (secure-by-default)
-- Isolamento de rede
-- Controle de acesso ao plano de gerenciamento
-- Monitoramento centralizado
-- Proteção de perímetro (WAF)
+<div align="center"> <img src="https://res.cloudinary.com/limpeja/image/upload/v1771688064/elllallalal_dkk1vr.png" width="1024"> </div>
 
-## Arquitetura de Alto Nível
-Recursos provisionados:
-- Resource Group dedicado
-- Virtual Network (VNet)
-- Subnet para AKS
-- Subnet dedicada para Application Gateway
-- AKS Private Cluster
-- Node Pools segregados (System / Workload)
-- Application Gateway WAF v2
-- Public IP Standard (App Gateway)
+## Project Context
+
+This repository represents a real-world platform foundation designed for organizations that require:
+
+- Network isolation
+- Zero public exposure of cluster control plane
+|- Perimeter protection (WAF)
+- Workload segregation
+- Centralized observability
+- Scalable infrastructure provisioning
+
+The architecture follows secure-by-default and production-first principles.
+
+## Architecture Overview
+
+Core components provisioned via Terraform:
+
+- Resource Group
+- Virtual Network with segmented subnets
+- Private Azure Kubernetes Service (AKS)
+- Dedicated System and Workload Node Pools
+- Application Gateway WAF v2 (Layer 7 protection)
+- Public IP (Application Gateway only)
 - Log Analytics Workspace
 
-## Segurança
-**Cluster**
-- Private AKS Cluster
-- Endpoint da API acessível apenas por IP autorizado (/32)
-- Azure RBAC habilitado
+## Design Decisions
+
+| Decision              | Reason                                      |
+| --------------------- | ------------------------------------------- |
+| Private AKS           | Prevent public access to Kubernetes API     |
+| Azure CNI             | Enterprise network integration              |
+| Node Pool segregation | Isolate system components from workloads    |
+| WAF v2                | Protect applications from OWASP Top 10      |
+| Managed Identity      | Avoid credential management                 |
+| Terraform             | Reproducible environments and governance    |
+
+## Security Architecture
+
+### Cluster
+
+- Private API Server
+- No public IPs on nodes
 - Managed Identity (SystemAssigned)
-- Azure Policy habilitado
+- Azure Policy enabled
+- RBAC integration
 
-**Rede**
-- Segmentação via VNet e Subnets
-- Nós do cluster sem exposição pública
-- Tráfego externo controlado via Application Gateway
+Access requires:
 
-**Perímetro**
-- Application Gateway configurado com:
+- VPN / ExpressRoute **or**
+- A host within the VNet (jumpbox/bastion)
+
+### Network
+
+- Dedicated VNet
+- Subnet isolation:
+  - AKS
+  - Application Gateway
+- Azure CNI networking
+- No direct internet exposure to cluster nodes
+
+### Perimeter Protection
+
+- Application Gateway configuration:
   - SKU: WAF_v2
-  - Firewall Mode: Prevention
+  - Mode: Prevention
   - OWASP Rule Set 3.2
-  - Proteção contra: SQL Injection, XSS, ataques de camada 7
+  - TLS modern policy
+- Protection against:
+  - SQL Injection
+  - XSS
+  - Layer 7 attacks
 
-## Kubernetes – Configuração
-**System Node Pool**
-- Responsável por componentes do Kubernetes e serviços críticos do cluster
+## Kubernetes Configuration
 
-**Workload Node Pool**
-- Auto Scaling habilitado
-- Escala independente
-- Label: `workload=apps`
-- Tamanho de VM: `Standard_DC2s_v3`
+### System Node Pool
 
-## Observabilidade
+Handles:
+
+- Core Kubernetes components
+- Critical cluster services
+
+Config:
+
+- Auto-scaling enabled
+- Min: 1 / Max: 3
+
+### Workload Node Pool
+
+Designed for application workloads:
+
+- Mode: User
+- Label: workload=apps
+- Independent auto-scaling
+- Min: 1 / Max: 5
+
+Enables workload isolation and scaling independence.
+
+## Observability
+
+- Azure Monitor integration
 - Log Analytics Workspace
-- Monitoramento do cluster via OMS Agent
-- Retenção padrão: 30 dias
-- Permite: logs de sistema, métricas de cluster e diagnóstico operacional
+- Container and system logs
+- Metrics collection
+- Operational diagnostics
+- 30-day retention
 
-## Estrutura de Variáveis
-```hcl
-variable "project_name" {
-  default = "ap-design-ai"
-}
+## Infrastructure as Code
 
-variable "environment" {
-  default = "prod"
-}
+Technologies:
 
-variable "location" {
-  default = "East US"
-}
-
-variable "admin_ip" {
-  description = "IP autorizado para acesso ao API Server (CIDR)"
-}
-```
-
-Exemplo de valor:
-```hcl
-admin_ip = "187.xxx.xxx.xxx/32"
-```
-
-## Pré-requisitos
-- Azure CLI
 - Terraform >= 1.5
-- Permissões para criação de recursos na subscription
+- AzureRM Provider
+- Azure CLI
 
-Login:
-```bash
+Deployment workflow:
+
+Escrita
+
+```
 az login
-```
-
-## Deploy
-Inicialização:
-```bash
 terraform init
-```
-
-Validação:
-```bash
 terraform plan
-```
-
-Provisionamento:
-```bash
 terraform apply
 ```
 
-## Configuração do kubectl
-Após o deploy:
-```bash
-az aks get-credentials \
-  --resource-group rg-ap-design-ai-prod \
-  --name aks-ap-design-ai-prod
+Destroy environment:
+
+Escrita
+
 ```
-
-## Gestão de Custos
-Recursos que geram custo contínuo:
-- AKS (nós)
-- Application Gateway WAF v2
-- Public IP Standard
-- Log Analytics
-
-Para ambientes de teste:
-```bash
 terraform destroy
 ```
 
-Nota: parar o cluster não remove custos do Application Gateway ou IP público.
+## Cost Awareness
 
-## Boas Práticas Implementadas
+Always-on cost components:
+
+- AKS node VMs
+- Application Gateway WAF v2
+- Public IP
+- Log ingestion
+
+For development/testing environments:
+
+- Reduce node pool limits
+- Use smaller VM sizes
+- Destroy resources when not in use
+
+## DevOps & Platform Engineering Practices Demonstrated
+
 - Infrastructure as Code
-- Ambientes isolados por variáveis
-- Segurança por padrão
-- Separação de workloads
-- Controle de acesso ao plano de gerenciamento
-- Proteção de perímetro
-- Monitoramento centralizado
+- Immutable infrastructure approach
+- Environment parameterization
+- Secure-by-default architecture
+- Production-oriented network design
+- Separation of concerns (system vs workload)
+- Observability from day one
+- Cost awareness and lifecycle management
 
-## Possíveis Extensões
+## Potential Enhancements (Roadmap)
+
 - Private DNS Zone
 - Azure Bastion
 - GitOps (ArgoCD / Flux)
-- Managed Identity para workloads
+- Workload Identity
+- Azure Key Vault CSI Driver
 - Horizontal Pod Autoscaler
-- Azure Key Vault Integration
 - Network Policies
+- Azure Defender for Containers
+- CI/CD pipeline for Terraform
 
-## Uso Corporativo
-Este repositório destina-se a:
-- Times de Plataforma / DevOps
-- Padronização de ambientes Kubernetes
-- Ambientes de produção ou staging corporativos
-- Base para plataformas internas de microsserviços
+## Use Cases
+
+- Enterprise microservices platforms
+- Internal developer platforms (IDP)
+- API platforms
+- AI/ML services
+- Financial or regulated environments
+
+## Author Perspective
+
+This project reflects my approach to DevOps and Platform Engineering:
+
+- Security and network isolation as a foundation
+- Infrastructure designed for production from day one
+- Automation and reproducibility over manual configuration
+- Focus on operational visibility and scalability
