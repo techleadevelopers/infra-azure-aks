@@ -4,7 +4,7 @@ Enterprise-grade Kubernetes platform on Azure designed for production workloads,
 
 This project demonstrates the design and implementation of a secure, scalable and observable AKS environment, suitable for microservices, APIs and AI-driven applications.
 
-<div align="center"> <img src="https://res.cloudinary.com/limpeja/image/upload/v1771688064/elllallalal_dkk1vr.png" width="1024"> </div>
+<div align="center"> <img src="https://res.cloudinary.com/limpeja/image/upload/v1771855397/swappy_3_hnvgtp.png" width="1024"> </div>
 
 ## Project Context
 
