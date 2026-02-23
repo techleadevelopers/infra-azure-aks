@@ -34,22 +34,3 @@ resource "azurerm_private_endpoint" "acr_registry" {
     private_dns_zone_ids = [azurerm_private_dns_zone.acr.id]
   }
 }
-
-resource "azurerm_private_endpoint" "acr_data" {
-  name                = "pe-acr-data"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.privatelink_subnet.id
-
-  private_service_connection {
-    name                           = "acrlink-data"
-    private_connection_resource_id = azurerm_container_registry.acr.id
-    is_manual_connection           = false
-    subresource_names              = ["data"]
-  }
-
-  private_dns_zone_group {
-    name                 = "acr-dns-data"
-    private_dns_zone_ids = [azurerm_private_dns_zone.acr.id]
-  }
-}
