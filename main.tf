@@ -24,6 +24,29 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 # =========================
+# Managed Identity for AKS
+# =========================
+resource "azurerm_user_assigned_identity" "aks_identity" {
+  name                = "id-aks-ap-prod"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+# Grant AKS identity rights on VNet
+resource "azurerm_role_assignment" "aks_network" {
+  scope                = azurerm_virtual_network.vnet.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
+}
+
+# Grant AKS identity rights on Private DNS Zone (needed for private cluster)
+resource "azurerm_role_assignment" "aks_private_dns" {
+  scope                = azurerm_private_dns_zone.aks.id
+  role_definition_name = "Private DNS Zone Contributor"
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
+}
+
+# =========================
 # Subnets
 # =========================
 resource "azurerm_subnet" "aks_subnet" {
@@ -199,16 +222,21 @@ resource "azurerm_kubernetes_cluster" "aks" {
   resource_group_name = azurerm_resource_group.main.name
   dns_prefix          = var.project_name
 
-  private_cluster_enabled       = true
-  public_network_access_enabled = false
-  local_account_disabled        = true
-  oidc_issuer_enabled           = true
-  workload_identity_enabled     = true
-  private_dns_zone_id           = azurerm_private_dns_zone.aks.id
+  private_cluster_enabled           = true
+  local_account_disabled            = true
+  oidc_issuer_enabled               = true
+  workload_identity_enabled         = true
+  private_dns_zone_id               = azurerm_private_dns_zone.aks.id
+  role_based_access_control_enabled = true
 
   key_vault_secrets_provider {
     secret_rotation_enabled  = true
     secret_rotation_interval = "2m"
+  }
+
+  azure_active_directory_role_based_access_control {
+    managed   = true
+    tenant_id = data.azurerm_client_config.current.tenant_id
   }
 
   default_node_pool {
@@ -226,7 +254,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aks_identity.id]
   }
 
   network_profile {
