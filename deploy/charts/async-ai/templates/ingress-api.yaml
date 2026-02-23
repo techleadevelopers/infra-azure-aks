@@ -1,0 +1,39 @@
+﻿{{- if .Values.api.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "async-ai.fullname" . }}-api
+  labels:
+    {{- include "async-ai.labels" . | nindent 4 }}
+  annotations:
+    # Para o Application Gateway da Azure, use 'azure/application-gateway'
+    kubernetes.io/ingress.class: {{ .Values.api.ingress.className | default "azure/application-gateway" | quote }}
+    # Habilita o WAF (Web Application Firewall) se necessário
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  {{- if .Values.api.ingress.tls }}
+  tls:
+    {{- range .Values.api.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.api.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ include "async-ai.fullname" $ }}-api
+                port:
+                  number: {{ $.Values.api.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}

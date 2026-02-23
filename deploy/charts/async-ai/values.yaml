@@ -1,0 +1,79 @@
+﻿image:
+  apiRepository: acr.example.azurecr.io/async-api
+  workerRepository: acr.example.azurecr.io/async-worker
+  tag: "v0.1.0"
+  pullPolicy: IfNotPresent
+
+api:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+  ingress:
+    enabled: true
+    className: azure/application-gateway
+    hosts:
+      - host: api.async-ai.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  prometheus:
+    enabled: true
+    path: /metrics
+    port: 8000
+  env:
+    queueName: requests
+    resultQueue: results
+
+worker:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 300m
+      memory: 384Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  queue:
+    name: requests
+    result: results
+  env:
+    model: gpt-4.1
+  volumeMountPath: /mnt/secrets-store
+  serviceAccountName: worker-wi
+  secretProvider:
+    kvName: kv-async-ai
+    tenantId: 00000000-0000-0000-0000-000000000000
+    clientId: 11111111-1111-1111-1111-111111111111
+    secrets:
+      - openai-api-key
+      - rabbitmq-password
+      - rabbitmq-connection
+
+rabbitmq:
+  enabled: true               # habilita dependência Bitnami
+  host: rabbitmq              # usado se externo
+  queueName: requests
+  auth:
+    username: user
+    passwordSecretKey: rabbitmq-password
+    existingSecret: ""        # se usar o chart Bitnami, pode apontar para {{ include "async-ai.secretName" . }}
+
+keda:
+  pollingInterval: 5
+  cooldownPeriod: 60
+  minReplicaCount: 1
+  maxReplicaCount: 20
+  triggerQueueLength: 50
+
+logAnalytics:
+  workspaceId: ""

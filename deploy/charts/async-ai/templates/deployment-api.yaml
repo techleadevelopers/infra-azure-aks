@@ -1,0 +1,59 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "async-ai.fullname" . }}-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "async-ai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.api.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "async-ai.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        {{- include "async-ai.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api
+      annotations:
+        prometheus.io/scrape: {{ .Values.api.prometheus.enabled | quote }}
+        prometheus.io/path: {{ .Values.api.prometheus.path | quote }}
+        prometheus.io/port: {{ .Values.api.prometheus.port | quote }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: api
+          image: "{{ .Values.image.apiRepository }}:{{ .Values.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+          ports:
+            - containerPort: {{ .Values.api.service.targetPort | default 8000 }}
+              name: http
+          env:
+            - name: RABBITMQ_CONNECTION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "async-ai.secretName" . }}
+                  key: rabbitmq-connection
+            - name: QUEUE_NAME
+              value: {{ .Values.api.env.queueName | quote }}
+            - name: RESULT_QUEUE
+              value: {{ .Values.api.env.resultQueue | quote }}
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20

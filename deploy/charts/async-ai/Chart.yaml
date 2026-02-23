@@ -1,0 +1,13 @@
+﻿apiVersion: v2
+name: async-ai
+description: Async AI processing stack (API + worker) with KEDA and RabbitMQ
+type: application
+version: 0.1.0
+appVersion: 0.1.0
+
+# Dependência opcional do RabbitMQ Bitnami (pode ser desabilitada via values)
+dependencies:
+  - name: rabbitmq
+    version: 15.6.2
+    repository: https://charts.bitnami.com/bitnami
+    condition: rabbitmq.enabled

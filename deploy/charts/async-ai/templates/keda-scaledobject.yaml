@@ -1,0 +1,36 @@
+﻿apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ .Release.Name }}-rabbitmq-auth
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: worker
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: {{ include "async-ai.secretName" . | quote }}
+      key: "rabbitmq-connection"
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Release.Name }}-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: worker
+spec:
+  scaleTargetRef:
+    name: {{ .Release.Name }}-worker
+  pollingInterval: {{ .Values.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.keda.cooldownPeriod | default 300 }}
+  minReplicaCount: {{ .Values.keda.minReplicaCount | default 1 }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount | default 10 }}
+  triggers:
+    - type: rabbitmq
+      metadata:
+        queueName: {{ .Values.worker.queue.name | quote }}
+        queueLength: {{ .Values.keda.triggerQueueLength | default 50 | quote }}
+      authenticationRef:
+        name: {{ .Release.Name }}-rabbitmq-auth
