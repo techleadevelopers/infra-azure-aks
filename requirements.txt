@@ -1,0 +1,7 @@
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+celery==5.3.6
+amqp==5.2.0
+redis==5.0.4
+openai==1.14.3
+pydantic==2.6.4
