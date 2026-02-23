@@ -101,13 +101,9 @@ resource "azurerm_application_gateway" "appgw" {
   resource_group_name = azurerm_resource_group.main.name
 
   sku {
-    name = "WAF_v2"
-    tier = "WAF_v2"
-  }
-
-  autoscale_configuration {
-    min_capacity = 0
-    max_capacity = 2
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 1
   }
 
   gateway_ip_configuration {
@@ -240,17 +236,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   default_node_pool {
-    name                = "system"
-    vm_size             = "Standard_DC2s_v3"
-    node_count          = 1
-    vnet_subnet_id      = azurerm_subnet.aks_subnet.id
-    enable_auto_scaling = true
-    min_count           = 1
-    max_count           = 2
-
-    upgrade_settings {
-      max_surge = "10%"
-    }
+    name           = "system"
+    vm_size        = "Standard_D2as_v5"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.aks_subnet.id
   }
 
   identity {
@@ -283,11 +272,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
 resource "azurerm_kubernetes_cluster_node_pool" "workload" {
   name                  = "workload"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
-  vm_size               = "Standard_DC2s_v3"
+  vm_size               = "Standard_D2as_v5"
   mode                  = "User"
 
   enable_auto_scaling = true
-  min_count           = 0
+  min_count           = 1
   max_count           = 3
 
   vnet_subnet_id = azurerm_subnet.aks_subnet.id
